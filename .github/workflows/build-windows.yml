@@ -1,0 +1,80 @@
+name: Build LAMMPS for Windows (MS-MPI)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install MS-MPI
+        run: |
+          choco install msmpi -y
+          
+      - name: Install MS-MPI SDK
+        run: |
+          choco install msmpisdk -y
+          
+      - name: Setup Boost
+        uses: MarkusJx/install-boost@v2.4.5
+        id: install-boost
+        with:
+          boost_version: 1.83.0
+          platform_version: 2022
+          
+      - name: Download LAMMPS
+        run: |
+          curl -L https://download.lammps.org/tars/lammps-22Jul2025_update4.tar.gz -o lammps.tar.gz
+          tar -xzf lammps.tar.gz
+          
+      - name: Replace MANIFOLD package
+        run: |
+          Remove-Item -Path lammps-22Jul2025/src/MANIFOLD -Recurse -Force
+          Copy-Item -Path MANIFOLD -Destination lammps-22Jul2025/src/MANIFOLD -Recurse
+          
+      - name: Configure LAMMPS
+        run: |
+          mkdir build
+          cd build
+          cmake ../lammps-22Jul2025/cmake `
+            -C ../lammps-22Jul2025/cmake/presets/basic.cmake `
+            -D BUILD_MPI=yes `
+            -D BUILD_OMP=yes `
+            -D PKG_FEP=on `
+            -D PKG_MANIFOLD=on `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D Boost_INCLUDE_DIR="${{ steps.install-boost.outputs.BOOST_ROOT }}/include"
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+          
+      - name: Build LAMMPS
+        run: |
+          cd build
+          cmake --build . --config Release -j $env:NUMBER_OF_PROCESSORS
+          
+      - name: Package binaries
+        run: |
+          mkdir lammps-windows-msmpi
+          cp build/Release/lmp.exe lammps-windows-msmpi/
+          cp "C:/Program Files/Microsoft MPI/Bin/msmpi.dll" lammps-windows-msmpi/
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lammps-windows-msmpi
+          path: lammps-windows-msmpi/
+          retention-days: 90
+          
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: lammps-windows-msmpi/*
