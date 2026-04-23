@@ -42,7 +42,6 @@ jobs:
         run: |
           cmake -S ./lammps-22Jul2025/cmake -B build `
             -C ./lammps-22Jul2025/cmake/presets/basic.cmake `
-            -C ./boost.cmake `
             -D BUILD_MPI=yes `
             -D BUILD_OMP=yes `
             -D PKG_FEP=on `
