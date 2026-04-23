@@ -18,13 +18,16 @@ jobs:
       - name: Install MS-MPI
         uses: mpi4py/setup-mpi@v1
           
+      # - name: Setup Boost
+      #   uses: MarkusJx/install-boost@v2
+      #   id: install-boost
+      #   with:
+      #     boost_version: 1.89.0
+      #     platform_version: 2025
+      #     toolset: msvc
+      
       - name: Setup Boost
-        uses: MarkusJx/install-boost@v2
-        id: install-boost
-        with:
-          boost_version: 1.89.0
-          platform_version: 2025
-          toolset: msvc
+        run: choco install boost-msvc-14.3 -y
           
       - name: Download LAMMPS
         run: |
@@ -38,20 +41,13 @@ jobs:
           
       - name: Configure LAMMPS
         run: |
-          echo "Boost Root is: $env:BOOST_ROOT"
           cmake -S ./lammps-22Jul2025/cmake -B build `
             -C ./lammps-22Jul2025/cmake/presets/basic.cmake `
             -D BUILD_MPI=yes `
             -D BUILD_OMP=yes `
             -D PKG_FEP=on `
             -D PKG_MANIFOLD=on `
-            -D CMAKE_BUILD_TYPE=Release `
-            -D BOOST_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}} `
-            -D Boost_INCLUDE_DIR=${{steps.install-boost.outputs.BOOST_ROOT}}/include `
-            -D Boost_LIBRARY_DIRS=${{steps.install-boost.outputs.BOOST_ROOT}}/lib `
-            -C ./boost.cmake
-        env:
-          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+            -D CMAKE_BUILD_TYPE=Release
           
       - name: Build LAMMPS
         run: |
