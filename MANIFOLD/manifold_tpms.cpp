@@ -14,6 +14,7 @@
 #include "manifold_tpms.h"
 #include "autodiff.h"
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 using namespace LAMMPS_NS;
