@@ -16,12 +16,15 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Install MS-MPI
-        run: |
-          choco install msmpi -y
+        uses: mpi4py/setup-mpi@v1
+
+      # - name: Install MS-MPI
+      #   run: |
+      #     choco install msmpi -y
           
-      - name: Install MS-MPI SDK
-        run: |
-          choco install msmpisdk -y
+      # - name: Install MS-MPI SDK
+      #   run: |
+      #     choco install msmpisdk -y
           
       - name: Setup Boost
         uses: MarkusJx/install-boost@v2.4.5
