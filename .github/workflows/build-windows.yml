@@ -35,6 +35,8 @@ jobs:
         run: |
           Remove-Item -Path lammps-22Jul2025/src/MANIFOLD -Recurse -Force
           Copy-Item -Path MANIFOLD -Destination lammps-22Jul2025/src/MANIFOLD -Recurse
+          Copy-Item -Path cmake_patches/MANIFOLD.cmake -Destination lammps-22Jul2025/cmake/Modules/Packages/MANIFOLD.cmake -Force
+          Copy-Item -Path cmake_patches/CMakeLists.txt -Destination lammps-22Jul2025/cmake/CmakeLists.txt -Force
           
       - name: Configure LAMMPS
         run: |
@@ -45,6 +47,7 @@ jobs:
             -D BUILD_OMP=yes `
             -D PKG_FEP=on `
             -D PKG_MANIFOLD=on `
+            -D BOOST_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}} `
             -D CMAKE_BUILD_TYPE=Release
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
