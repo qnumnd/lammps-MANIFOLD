@@ -35,12 +35,10 @@ jobs:
         run: |
           Remove-Item -Path lammps-22Jul2025/src/MANIFOLD -Recurse -Force
           Copy-Item -Path MANIFOLD -Destination lammps-22Jul2025/src/MANIFOLD -Recurse
-
+          
       - name: Configure LAMMPS
         run: |
           echo "Boost Root is: $env:BOOST_ROOT"
-          mkdir build
-          cd build
           cmake -S ../lammps-22Jul2025/cmake -B build `
             -C ../lammps-22Jul2025/cmake/presets/basic.cmake `
             -D BUILD_MPI=yes `
@@ -48,7 +46,7 @@ jobs:
             -D PKG_FEP=on `
             -D PKG_MANIFOLD=on `
             -D CMAKE_BUILD_TYPE=Release `
-            -D BOOST_ROOT="$env:BOOST_ROOT"
+            -D CMAKE_CXX_FLAGS="-I$env:BOOST_ROOT/include"
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
           
