@@ -61,7 +61,6 @@ jobs:
         run: |
           mkdir lammps-windows-msmpi
           cp build/Release/lmp.exe lammps-windows-msmpi/
-          cp "C:/Program Files/Microsoft MPI/Bin/msmpi.dll" lammps-windows-msmpi/
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
