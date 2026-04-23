@@ -18,16 +18,13 @@ jobs:
       - name: Install MS-MPI
         uses: mpi4py/setup-mpi@v1
           
-      # - name: Setup Boost
-      #   uses: MarkusJx/install-boost@v2
-      #   id: install-boost
-      #   with:
-      #     boost_version: 1.89.0
-      #     platform_version: 2025
-      #     toolset: msvc
-      
       - name: Setup Boost
-        run: choco install boost-msvc-14.3 -y
+        uses: MarkusJx/install-boost@v2
+        id: install-boost
+        with:
+          boost_version: 1.89.0
+          platform_version: 2025
+          toolset: msvc
           
       - name: Download LAMMPS
         run: |
@@ -43,11 +40,15 @@ jobs:
         run: |
           cmake -S ./lammps-22Jul2025/cmake -B build `
             -C ./lammps-22Jul2025/cmake/presets/basic.cmake `
+            -C ./boost.cmake `
             -D BUILD_MPI=yes `
             -D BUILD_OMP=yes `
             -D PKG_FEP=on `
             -D PKG_MANIFOLD=on `
             -D CMAKE_BUILD_TYPE=Release
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+          
           
       - name: Build LAMMPS
         run: |

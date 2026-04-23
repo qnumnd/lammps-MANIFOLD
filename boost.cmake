@@ -1,0 +1,1 @@
+include_directories(SYSTEM "$ENV{BOOST_ROOT}/include")
