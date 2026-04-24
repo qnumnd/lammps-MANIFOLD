@@ -1,0 +1,77 @@
+name: Build LAMMPS for Linux
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ '*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    strategy:
+      matrix:
+        mpi: [openmpi, mpich]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install MPI
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: ${{ matrix.mpi }}
+          
+      - name: Setup Boost
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-all-dev
+          
+      - name: Download LAMMPS
+        run: |
+          curl -L https://download.lammps.org/tars/lammps-22Jul2025_update4.tar.gz -o lammps.tar.gz
+          tar -xzf lammps.tar.gz
+          
+      - name: Replace MANIFOLD package
+        run: |
+          rm -rf lammps-22Jul2025/src/MANIFOLD
+          cp -r MANIFOLD lammps-22Jul2025/src/MANIFOLD
+          cp cmake_patches/CMakeLists.txt lammps-22Jul2025/cmake/CMakeLists.txt
+          
+      - name: Configure LAMMPS
+        run: |
+          cmake -S ./lammps-22Jul2025/cmake -B build \
+            -C ./lammps-22Jul2025/cmake/presets/basic.cmake \
+            -D BUILD_MPI=yes \
+            -D BUILD_OMP=yes \
+            -D PKG_FEP=on \
+            -D PKG_MANIFOLD=on \
+            -D CMAKE_BUILD_TYPE=Release
+          
+      - name: Build LAMMPS
+        run: |
+          cd build
+          cmake --build . --config Release -j $(nproc)
+          
+      - name: Package binaries
+        run: |
+          cp build/lmp lmp_${{ matrix.mpi }}
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lmp_${{ matrix.mpi }}
+          path: lmp_${{ matrix.mpi }}
+          retention-days: 90
+          
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        if: github.ref_type == 'tag'
+        with:
+          files: lmp_${{ matrix.mpi }}
