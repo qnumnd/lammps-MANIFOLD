@@ -593,11 +593,16 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MANIFOLD)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
 endforeach()
+
+if(PKG_MANIFOLD)
+  find_package(Boost REQUIRED)
+  target_link_libraries(lammps PRIVATE Boost::headers)
+endif()
 
 # settings for misc packages and styles
 if(PKG_MISC)
