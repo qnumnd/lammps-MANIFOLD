@@ -15,10 +15,6 @@ jobs:
     permissions:
       contents: write
     
-    strategy:
-      matrix:
-        mpi: [openmpi, mpich]
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,7 +22,7 @@ jobs:
       - name: Install MPI
         uses: mpi4py/setup-mpi@v1
         with:
-          mpi: ${{ matrix.mpi }}
+          mpi: openmpi
           
       - name: Setup Boost
         run: |
@@ -61,17 +57,17 @@ jobs:
           
       - name: Package binaries
         run: |
-          cp build/lmp lmp_${{ matrix.mpi }}
+          cp build/lmp lmp_openmpi
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: lmp_${{ matrix.mpi }}
-          path: lmp_${{ matrix.mpi }}
+          name: lmp_openmpi
+          path: lmp_openmpi
           retention-days: 90
           
       - name: Release
         uses: softprops/action-gh-release@v3
         if: github.ref_type == 'tag'
         with:
-          files: lmp_${{ matrix.mpi }}
+          files: lmp_openmpi
